@@ -1,15 +1,14 @@
 {
   "short_name": "React App",
-  "name": "Create React App Sample",
-  "icons": [
-    {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    }
-  ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "name": "Tracker Tracker",
+  "manifest_version": 2,
+  "browser_action": {
+    "default_popup": "index.html",
+    "default_title": "Tracker Tracker"
+  },
+  "version": "1.0",
+  "icons": {
+      "48": "icon_48.png",
+      "128": "icon_128.png"
+  }
 }
