@@ -1,12 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
+import {MainPage, PanelView} from './main';
 
-ReactDOM.render(<App />, document.getElementById('root'));
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: http://bit.ly/CRA-PWA
-serviceWorker.unregister();
+// XXX: use react router/configure multiple endpoints instead?
+if (window.location.hash) {
+    ReactDOM.render(<MainPage />, document.getElementById('root'));
+} else {
+    ReactDOM.render(<PanelView />, document.getElementById('root'));
+}

@@ -1,0 +1,23 @@
+.panelView {
+  width: 160px;
+  text-align: center;
+  margin: 10px;
+  background-color: white;
+}
+
+
+.panelView input[name=dontautotrackingNumber] {
+  width: 150px;
+}
+
+.panelView input[name=dontautolabel] {
+  width: 100px;
+}
+
+.panelView input[name=track] {
+  width: 50px;
+}
+
+.panelView button {
+  width: 160px;
+}
