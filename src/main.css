@@ -1,10 +1,10 @@
+/* PANEL VIEW */
 .panelView {
   width: 160px;
   text-align: center;
-  margin: 10px;
+  padding: 10px;
   background-color: white;
 }
-
 
 .panelView input[name=dontautotrackingNumber] {
   width: 150px;
@@ -20,4 +20,52 @@
 
 .panelView button {
   width: 160px;
+}
+
+/* MAIN PAGE */
+.mainPage {
+  width: 500px;
+  margin: auto;
+  margin-top: 100px;
+  padding: 20px;
+}
+
+.trackerInfo {
+  border: 1px solid grey;
+  background-color: white;
+  margin-top: 10px;
+  padding: 10px;
+  display: grid;
+  grid-template-rows: 2;
+  grid-template-columns: 50% 40% 10%;
+}
+
+.trackerInfo a {
+  color: #0066cc;
+}
+
+.label {
+  text-transform: uppercase;
+  grid-row: 1;
+  grid-column: 1 / span 2;
+}
+
+.lastUpdated {
+  color: grey;
+  font-size: 80%;
+  grid-row: 2;
+  grid-column: 2 / span 2;
+  text-align: right;
+}
+
+.trackingRefresh {
+  grid-row: 1;
+  grid-column: 3;
+  text-align: right;
+}
+.trackingBody {
+  color: grey;
+  font-size: 80%;
+  grid-row: 2;
+  grid-column: 1;
 }

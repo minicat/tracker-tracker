@@ -13,8 +13,8 @@ export class MainPage extends React.Component<{}, MainPageState> {
       super(props);
 
       this.state = {trackers: [
-          {trackingNumber: 'asdfd', label: 'pusheen'},
-          {trackingNumber: 'asdfa', label: 'stormy'},
+          {trackingNumber: '785050327247', label: 'pusheen'},
+          {trackingNumber: 'TBA717489073000', label: 'stormy'},
       ]};
   }
   render() {
@@ -32,8 +32,12 @@ class TrackerView extends React.Component<{tracker: TrackerInfo}, {}> {
   render() {
     return (
       <div className="trackerInfo">
-        Label: {this.props.tracker.label}
-        trackingNumber: {this.props.tracker.trackingNumber}
+        <div className="label">{this.props.tracker.label} - $STATUS</div>
+        <div className="trackingBody">
+          $CARRIER @ <a href="TODO">{this.props.tracker.trackingNumber}</a>
+        </div>
+        <div className="lastUpdated">Last updated $TIME ago</div>
+        <div className="trackingRefresh">R</div>
       </div>
     )
   }
