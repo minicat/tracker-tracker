@@ -10,5 +10,9 @@
   "icons": {
       "48": "icon_48.png",
       "128": "icon_128.png"
-  }
+  },
+  "permissions": [
+    "storage",
+    "https://api.aftership.com/"
+  ]
 }

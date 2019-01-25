@@ -1,6 +1,7 @@
 /*global chrome*/
 import React from 'react';
 import './main.css';
+import {TrackingAPI} from './api';
 
 
 
@@ -13,8 +14,8 @@ export class MainPage extends React.Component<{}, MainPageState> {
       super(props);
 
       this.state = {trackers: [
-          {trackingNumber: '785050327247', label: 'pusheen'},
-          {trackingNumber: 'TBA717489073000', label: 'stormy'},
+          {tracking_number: '12348197344', label: 'pusheen'},
+          {tracking_number: '18934r7w3894', label: 'stormy'},
       ]};
   }
   render() {
@@ -34,7 +35,7 @@ class TrackerView extends React.Component<{tracker: TrackerInfo}, {}> {
       <div className="trackerInfo">
         <div className="label">{this.props.tracker.label} - $STATUS</div>
         <div className="trackingBody">
-          $CARRIER @ <a href="TODO">{this.props.tracker.trackingNumber}</a>
+          $CARRIER @ <a href="TODO">{this.props.tracker.tracking_number}</a>
         </div>
         <div className="lastUpdated">Last updated $TIME ago</div>
         <div className="trackingRefresh">R</div>
@@ -63,7 +64,7 @@ export class PanelView extends React.Component<{}, {}> {
 class AddTrackerForm extends React.Component<{}, {number: string, label: string}> {
   constructor(props) {
     super(props);
-    this.state = {trackingNumber: '', label: ''};
+    this.state = {tracking_number: '', label: ''};
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -75,13 +76,13 @@ class AddTrackerForm extends React.Component<{}, {number: string, label: string}
   }
 
   handleSubmit(event) {
-    alert('trackingNumber: ' + this.state.trackingNumber + ' label: '+ this.state.label);
+    alert('tracking_number: ' + this.state.tracking_number + ' label: '+ this.state.label);
     event.preventDefault();
     // TODO: save it, show progress state, etc
   }
 
   render() {
-    const formEnabled = this.state.trackingNumber.length > 0 && this.state.label.length > 0;
+    const formEnabled = this.state.tracking_number.length > 0 && this.state.label.length > 0;
     return (
       <form onSubmit={this.handleSubmit} autocomplete="nope">
         <label>
