@@ -9,3 +9,4 @@ if (window.location.hash) {
 } else {
     ReactDOM.render(<PanelView />, document.getElementById('root'));
 }
+

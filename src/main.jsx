@@ -1,7 +1,7 @@
 /*global chrome*/
 import React from 'react';
 import './main.css';
-import {TrackingAPI} from './api';
+import {Storage, TrackingAPI} from './api';
 
 
 
@@ -17,12 +17,28 @@ export class MainPage extends React.Component<{}, MainPageState> {
           {tracking_number: '12348197344', label: 'pusheen'},
           {tracking_number: '18934r7w3894', label: 'stormy'},
       ]};
+
+      this.storage = new Storage();
   }
+
+
   render() {
     // TODO: add thing, remove things, refresh things, "old" section, load
     return (
       <div className="mainPage">
+
+        // <button onClick={() => {this.storage.addOrUpdateTracker(
+        //   {tracking_number: '1', label: '1'}, () => {console.log('added 1')}
+        //   )}}>add 1</button>
+        // <button onClick={() => {this.storage.addOrUpdateTracker(
+        //   {tracking_number: '2', label: '2'}, () => {console.log('added 2')}
+        //   )}}>add 2</button>
+        // <button onClick={() => {this.storage.deleteTracker(1, () => {console.log('deleted 1')}
+        //   )}}>del 1</button>
+        // <button onClick={() => {console.log('exists?', this.storage.trackerExists(1))}}>1 exists?</button>
+        // <button onClick={() => console.log('printing storage', this.storage.jsonTrackers)}>print storage</button>
         {this.state.trackers.map(t => <TrackerView tracker={t} />)}
+
       </div>
     );
   }
