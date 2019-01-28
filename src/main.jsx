@@ -7,106 +7,132 @@ import {Storage, TrackingAPI} from './api';
 
 
 type MainPageState = {
-  trackers: TrackerInfo[];
+    trackers: TrackerInfo[];
 };
 export class MainPage extends React.Component<{}, MainPageState> {
-  constructor(props) {
-      super(props);
+    constructor(props) {
+            super(props);
 
-      this.state = {trackers: [
-          {tracking_number: '12348197344', label: 'pusheen'},
-          {tracking_number: '18934r7w3894', label: 'stormy'},
-      ]};
+            this.state = {trackers: [
+                    {tracking_number: '12348197344', label: 'pusheen'},
+                    {tracking_number: '18934r7w3894', label: 'stormy'},
+            ]};
 
-      this.storage = new Storage();
-  }
+            this.storage = new Storage();
+    }
 
 
-  render() {
-    // TODO: add thing, remove things, refresh things, "old" section, load
-    return (
-      <div className="mainPage">
-
-        // <button onClick={() => {this.storage.addOrUpdateTracker(
-        //   {tracking_number: '1', label: '1'}, () => {console.log('added 1')}
-        //   )}}>add 1</button>
-        // <button onClick={() => {this.storage.addOrUpdateTracker(
-        //   {tracking_number: '2', label: '2'}, () => {console.log('added 2')}
-        //   )}}>add 2</button>
-        // <button onClick={() => {this.storage.deleteTracker(1, () => {console.log('deleted 1')}
-        //   )}}>del 1</button>
-        // <button onClick={() => {console.log('exists?', this.storage.trackerExists(1))}}>1 exists?</button>
-        // <button onClick={() => console.log('printing storage', this.storage.jsonTrackers)}>print storage</button>
-        {this.state.trackers.map(t => <TrackerView tracker={t} />)}
-
-      </div>
-    );
-  }
+    render() {
+        // TODO: add thing, remove things, refresh things, "old" section, load
+        return (
+            <div className="mainPage">
+                {this.state.trackers.map(t => <TrackerView tracker={t} />)}
+            </div>
+        );
+    }
 }
 
 
 class TrackerView extends React.Component<{tracker: TrackerInfo}, {}> {
-  render() {
-    return (
-      <div className="trackerInfo">
-        <div className="label">{this.props.tracker.label} - $STATUS</div>
-        <div className="trackingBody">
-          $CARRIER @ <a href="TODO">{this.props.tracker.tracking_number}</a>
-        </div>
-        <div className="lastUpdated">Last updated $TIME ago</div>
-        <div className="trackingRefresh">R</div>
-      </div>
-    )
-  }
+    render() {
+        return (
+            <div className="trackerInfo">
+                <div className="label">{this.props.tracker.label} - $STATUS</div>
+                <div className="trackingBody">
+                    $CARRIER @ <a href="TODO">{this.props.tracker.tracking_number}</a>
+                </div>
+                <div className="lastUpdated">Last updated $TIME ago</div>
+                <div className="trackingRefresh">R</div>
+            </div>
+        )
+    }
 }
 
 export class PanelView extends React.Component<{}, {}> {
-  openMain() {
-    chrome.tabs.create({url: 'index.html#main'});
-  }
+    openMain() {
+        chrome.tabs.create({url: 'index.html#main'});
+    }
 
-  render() {
-    return (
-      <div className="panelView">
-        <AddTrackerForm />
-        <hr />
-        <button onClick={this.openMain}>See all trackers</button>
-      </div>
-    )
-  }
+    render() {
+        return (
+            <div className="panelView">
+                <AddTrackerForm />
+                <hr />
+                <button onClick={this.openMain}>See all trackers</button>
+            </div>
+        )
+    }
 }
 
 
 class AddTrackerForm extends React.Component<{}, {number: string, label: string}> {
-  constructor(props) {
-    super(props);
-    this.state = {tracking_number: '', label: ''};
+    constructor(props) {
+        super(props);
+        this.state = {tracking_number: '', label: '', buttonText: 'Track', inProgress: false};
 
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
 
-  handleChange(event) {
-    // TODO: fix chrome autocomplete in a better way
-    this.setState({[event.target.name.substring(8)]: event.target.value});
-  }
+        this.storage = new Storage();
+        this.ticker = undefined;
+    }
 
-  handleSubmit(event) {
-    alert('tracking_number: ' + this.state.tracking_number + ' label: '+ this.state.label);
-    event.preventDefault();
-    // TODO: save it, show progress state, etc
-  }
+    handleChange(event) {
+        // TODO: fix chrome autocomplete in a better way
+        this.setState({[event.target.name.substring(8)]: event.target.value, buttonText: 'Track'});
+    }
 
-  render() {
-    const formEnabled = this.state.tracking_number.length > 0 && this.state.label.length > 0;
-    return (
-      <form onSubmit={this.handleSubmit} autocomplete="nope">
-        <label>
-          <input type="text" placeholder="Add a tracking number" value={this.state.number} onChange={this.handleChange} name="dontautotrackingNumber" autocomplete="nope" />
-          <input type="text" placeholder="What's it for?" value={this.state.label} onChange={this.handleChange} name="dontautolabel" autocomplete="nope" />
-        </label>
-        <input type="submit" value="Track" disabled={!formEnabled} name="track" />
-      </form>
-    );
-  }
+    tick() {
+        // Animate a ...
+        let newText = this.state.buttonText + '.';
+        if (newText.length == 4) {
+            newText = '.';
+        }
+        this.setState({buttonText: newText})
+    }
+
+    handleSubmit(event) {
+        this.setState({buttonText: '.', inProgress: 'true'});
+        this.ticker = setInterval(
+          () => this.tick(),
+          250
+        );
+        TrackingAPI.addTrackingNumber(
+            this.state.tracking_number,
+            this.state.label,
+            (tracker: TrackerInfo) => {
+                this.storage.addOrUpdateTracker(tracker, () => {
+                    clearInterval(this.ticker);
+                    this.setState({tracking_number: '', label: '', buttonText: 'Done!', inProgress: false});
+                })
+            }
+        )
+        event.preventDefault();
+    }
+
+    render() {
+        const alreadyBeingTracked = this.storage.trackerExists(this.state.tracking_number);
+        const formEnabled = (
+            this.state.tracking_number.length > 0 && this.state.label.length > 0 && !alreadyBeingTracked && !this.state.inProgress
+        );
+
+        let inputText = 'Track';
+
+        const validationMessage = alreadyBeingTracked ? "You're already tracking this" : "";
+        return (
+            <div>
+                <form onSubmit={this.handleSubmit} autocomplete="nope">
+                    <label>
+                        <input type="hidden" value="dealwithautocomplete" />
+                        <input type="text" placeholder="Add a tracking number" value={this.state.number} onChange={this.handleChange} name="dontautotracking_number" autocomplete="nope" />
+                        <input type="text" placeholder="What's it for?" value={this.state.label} onChange={this.handleChange} name="dontautolabel" autocomplete="nope" />
+                    </label>
+                    <input type="submit" value={this.state.buttonText} disabled={!formEnabled} name="track" />
+                </form>
+                <div class="formValidationMessage">
+                    {validationMessage}
+                </div>
+            </div>
+        );
+    }
 }

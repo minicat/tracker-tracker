@@ -6,7 +6,7 @@
   background-color: white;
 }
 
-.panelView input[name=dontautotrackingNumber] {
+.panelView input[name=dontautotracking_number] {
   width: 150px;
 }
 
@@ -20,6 +20,12 @@
 
 .panelView button {
   width: 160px;
+}
+
+.formValidationMessage {
+  font-size: 80%;
+  font-size: italic;
+  color: grey;
 }
 
 /* MAIN PAGE */

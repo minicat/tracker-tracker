@@ -41,7 +41,7 @@ export class Storage {
     constructor() {
         // Cache jsonTrackers locally so we don't have to read every time
         // TODO: we may need onReady?
-        this.jsonTrackers = undefined;
+        this.jsonTrackers = {};
         this.getAllTrackers((jsonTrackers) => {
             this.jsonTrackers = jsonTrackers;
         });
@@ -86,13 +86,6 @@ export class Storage {
 * Based on their API, we can add + remove trackings, list trackings, and lookup by tracking number+slug OR id.
 * No batch lookup though, so we'll have to rely on list to do batch refresh.
 */
-function finishAddTrackingNumber(data, status, jqxhr) {
-    // delete me and pass in callback instead
-    console.log('finishAddTrackingNumber');
-    console.log(data, status, jqxhr);
-    console.log(TrackingAPI.parseAftershipTracker(data['data']['tracking']));
-}
-
 function finishDeleteTrackingNumber(data, status, jqxhr) {
     // delete me and pass in callback instead
     console.log('finishDeleteTrackingNumber');
@@ -100,8 +93,8 @@ function finishDeleteTrackingNumber(data, status, jqxhr) {
 }
 
 export class TrackingAPI {
-    // TODO: accept success/failure callbacks
-    static addTrackingNumber(tracking_number: string[], label: label){
+    // TODO: accept failure callbacks
+    static addTrackingNumber(tracking_number: string, label: label, onSuccess: function){
         // to parse: data -> tracking
         // Note: This will return an error if the tracking number already exists.
         $.ajax({
@@ -118,7 +111,9 @@ export class TrackingAPI {
                 }
             }),
             dataType: "json",
-            success: finishAddTrackingNumber
+            success: (data, status, jqxhr) => {
+                onSuccess(TrackingAPI.parseAftershipTracker(data['data']['tracking']));
+            }
             // TODO: failure handler
         });
     };
