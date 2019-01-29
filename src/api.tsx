@@ -8,19 +8,19 @@ export type TrackerInfo = {
     tracking_number: string,
     label: string,
 
-    // TODO: remove ? later
     // TODO: add subtag/subtag_message for extra detail
-    aftership_id?: string,  //id
-    last_updated_at?: string,
-    tag?: string,  // shipping status
+    aftership_id: string,  //id
+    last_updated_at: string,
+    tag: string,  // shipping status
     slug: string,  // carrier
     expected_delivery?: string,  // may be null
     shipment_delivery_date? : string,   // may be null
-    created_at?: string,
+    created_at: string,
 
-    tracking_url?: string,  // constructed in parseAftershipTracker
+    tracking_url: string,  // constructed in parseAftershipTracker
 };
 
+export type TrackerMap = {[tracking_number: string]: TrackerInfo}
 
 // TODO: eventually we should save and cache tracking info on save of new tracker
 // also reject dupe trackers
@@ -38,16 +38,18 @@ export type TrackerInfo = {
 */
 const STORAGE_KEY = 'trackers';
 export class Storage {
-    constructor() {
+    jsonTrackers: TrackerMap
+    constructor(callback: Function) {
         // Cache jsonTrackers locally so we don't have to read every time
         // TODO: we may need onReady?
         this.jsonTrackers = {};
-        this.getAllTrackers((jsonTrackers) => {
+        this.getAllTrackers((jsonTrackers: TrackerMap) => {
             this.jsonTrackers = jsonTrackers;
+            callback(jsonTrackers);
         });
     }
 
-    getAllTrackers(callback: function) {
+    getAllTrackers(callback: Function) {
         chrome.storage.sync.get(STORAGE_KEY, (items) => {
             if (typeof items[STORAGE_KEY] === 'undefined') {
                 callback({});
@@ -63,7 +65,7 @@ export class Storage {
     }
 
     // FIXME: assumes jsonTrackers already fetched
-    addOrUpdateTracker(tracker: TrackerInfo, callback: function) {
+    addOrUpdateTracker(tracker: TrackerInfo, callback: Function) {
         this.jsonTrackers[tracker.tracking_number] = tracker;
         chrome.storage.sync.set({[STORAGE_KEY]: JSON.stringify(this.jsonTrackers)}, () => {
             callback();
@@ -71,7 +73,7 @@ export class Storage {
     }
 
     // FIXME: assumes jsonTrackers already fetched
-    deleteTracker(tracking_number: string, callback: function) {
+    deleteTracker(tracking_number: string, callback: Function) {
         delete this.jsonTrackers[tracking_number];
         chrome.storage.sync.set({[STORAGE_KEY]: JSON.stringify(this.jsonTrackers)}, () => {
             callback();
@@ -86,15 +88,10 @@ export class Storage {
 * Based on their API, we can add + remove trackings, list trackings, and lookup by tracking number+slug OR id.
 * No batch lookup though, so we'll have to rely on list to do batch refresh.
 */
-function finishDeleteTrackingNumber(data, status, jqxhr) {
-    // delete me and pass in callback instead
-    console.log('finishDeleteTrackingNumber');
-    console.log(data, status, jqxhr);
-}
 
 export class TrackingAPI {
     // TODO: accept failure callbacks
-    static addTrackingNumber(tracking_number: string, label: label, onSuccess: function){
+    static addTrackingNumber(tracking_number: string, label: string, onSuccess: Function){
         // to parse: data -> tracking
         // Note: This will return an error if the tracking number already exists.
         $.ajax({
@@ -129,7 +126,7 @@ export class TrackingAPI {
                 'Content-Type': 'application/json'
             },
             dataType: "json",
-            success: finishDeleteTrackingNumber
+            // success: TODO
             // TODO: failure handler
         });
     }
@@ -166,7 +163,7 @@ export class TrackingAPI {
         });
     }
 
-    static parseAftershipTracker(rawInfo): TrackerInfo {
+    static parseAftershipTracker(rawInfo: {[key: string]: string}): TrackerInfo {
         return {
             tracking_number: rawInfo['tracking_number'],
             label: rawInfo['title'],

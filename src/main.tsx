@@ -1,32 +1,30 @@
 /*global chrome*/
 import React from 'react';
 import './main.css';
-import {Storage, TrackingAPI} from './api';
+import {Storage, TrackingAPI, TrackerInfo, TrackerMap} from './api';
+import {prettyPrintTimeSince} from './helpers';
 
 
-
-
-type MainPageState = {
-    trackers: TrackerInfo[];
-};
-export class MainPage extends React.Component<{}, MainPageState> {
-    constructor(props) {
+export class MainPage extends React.Component<{}, {trackerDict: TrackerMap}> {
+    storage: Storage;
+    constructor(props: {}) {
             super(props);
 
-            this.state = {trackers: [
-                    {tracking_number: '12348197344', label: 'pusheen'},
-                    {tracking_number: '18934r7w3894', label: 'stormy'},
-            ]};
-
-            this.storage = new Storage();
+            this.state = {trackerDict: {}};
+            this.storage = new Storage((jsonTrackers: TrackerMap) => {
+                this.setState({trackerDict: jsonTrackers})
+            });
     }
 
 
     render() {
         // TODO: add thing, remove things, refresh things, "old" section, load
+        const trackers = Object.values(this.state.trackerDict);
+        // XXX: this is inefficient, fixme
+        trackers.sort((a, b) => {return Date.parse(a.created_at) - Date.parse(b.created_at)});
         return (
             <div className="mainPage">
-                {this.state.trackers.map(t => <TrackerView tracker={t} />)}
+                {trackers.map(t => <TrackerView tracker={t} />)}
             </div>
         );
     }
@@ -34,14 +32,22 @@ export class MainPage extends React.Component<{}, MainPageState> {
 
 
 class TrackerView extends React.Component<{tracker: TrackerInfo}, {}> {
+
+    // TODO: add subtag/subtag_message for extra detail
+    // TODO: add following fields
+    // expected_delivery?: string,  // may be null
+    // shipment_delivery_date? : string,   // may be null
+    // created_at?: string,
+
     render() {
+        const t = this.props.tracker
         return (
             <div className="trackerInfo">
-                <div className="label">{this.props.tracker.label} - $STATUS</div>
+                <div className="label">{t.label} - {t.tag}</div>
                 <div className="trackingBody">
-                    $CARRIER @ <a href="TODO">{this.props.tracker.tracking_number}</a>
+                    {t.slug} @ <a href={t.tracking_url} target="_blank">{t.tracking_number}</a>
                 </div>
-                <div className="lastUpdated">Last updated $TIME ago</div>
+                <div className="lastUpdated">Last updated {prettyPrintTimeSince(t.last_updated_at)}</div>
                 <div className="trackingRefresh">R</div>
             </div>
         )
@@ -64,22 +70,30 @@ export class PanelView extends React.Component<{}, {}> {
     }
 }
 
+type AddTrackerFormState = {
+    tracking_number: string,
+    label: string,
+    buttonText: string,
+    inProgress: boolean
+};
 
-class AddTrackerForm extends React.Component<{}, {number: string, label: string}> {
-    constructor(props) {
+class AddTrackerForm extends React.Component<{}, AddTrackerFormState> {
+// TODO: fix chrome autocomplete
+    storage: Storage;
+    ticker: any;
+    constructor(props: {}) {
         super(props);
         this.state = {tracking_number: '', label: '', buttonText: 'Track', inProgress: false};
 
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
 
-        this.storage = new Storage();
+        this.storage = new Storage((jsonTrackers: TrackerMap) => {});
         this.ticker = undefined;
     }
 
     handleChange(event) {
-        // TODO: fix chrome autocomplete in a better way
-        this.setState({[event.target.name.substring(8)]: event.target.value, buttonText: 'Track'});
+        this.setState({[event.target.name.substring(8)]: event.target.value, buttonText: 'Track'} as any);
     }
 
     tick() {
@@ -92,7 +106,7 @@ class AddTrackerForm extends React.Component<{}, {number: string, label: string}
     }
 
     handleSubmit(event) {
-        this.setState({buttonText: '.', inProgress: 'true'});
+        this.setState({buttonText: '.', inProgress: true});
         this.ticker = setInterval(
           () => this.tick(),
           250
@@ -121,15 +135,15 @@ class AddTrackerForm extends React.Component<{}, {number: string, label: string}
         const validationMessage = alreadyBeingTracked ? "You're already tracking this" : "";
         return (
             <div>
-                <form onSubmit={this.handleSubmit} autocomplete="nope">
+                <form onSubmit={this.handleSubmit}>
                     <label>
                         <input type="hidden" value="dealwithautocomplete" />
-                        <input type="text" placeholder="Add a tracking number" value={this.state.number} onChange={this.handleChange} name="dontautotracking_number" autocomplete="nope" />
-                        <input type="text" placeholder="What's it for?" value={this.state.label} onChange={this.handleChange} name="dontautolabel" autocomplete="nope" />
+                        <input type="text" placeholder="Add a tracking number" value={this.state.tracking_number} onChange={this.handleChange} name="dontautotracking_number" />
+                        <input type="text" placeholder="What's it for?" value={this.state.label} onChange={this.handleChange} name="dontautolabel" />
                     </label>
                     <input type="submit" value={this.state.buttonText} disabled={!formEnabled} name="track" />
                 </form>
-                <div class="formValidationMessage">
+                <div className="formValidationMessage">
                     {validationMessage}
                 </div>
             </div>
