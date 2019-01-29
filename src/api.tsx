@@ -13,8 +13,8 @@ export type TrackerInfo = {
     last_updated_at: string,
     tag: string,  // shipping status
     slug: string,  // carrier
-    expected_delivery?: string,  // may be null
-    shipment_delivery_date? : string,   // may be null
+    expected_delivery: string,  // may be null
+    shipment_delivery_date: string,   // may be null
     created_at: string,
 
     tracking_url: string,  // constructed in parseAftershipTracker

@@ -34,10 +34,17 @@ export class MainPage extends React.Component<{}, {trackerDict: TrackerMap}> {
 class TrackerView extends React.Component<{tracker: TrackerInfo}, {}> {
 
     // TODO: add subtag/subtag_message for extra detail
-    // TODO: add following fields
-    // expected_delivery?: string,  // may be null
-    // shipment_delivery_date? : string,   // may be null
-    // created_at?: string,
+    getDeliveredOrDetails(t: TrackerInfo) {
+        if (t.shipment_delivery_date !== null) {
+            return `Delivered ${prettyPrintTimeSince(t.shipment_delivery_date!)}`;
+        }
+        // TODO: return subtag_message
+        let output = '$SUBTAG';
+        if (t.expected_delivery !== null){
+            output += `: expected ${t.expected_delivery}`;
+        }
+        return output;
+    }
 
     render() {
         const t = this.props.tracker
@@ -45,10 +52,14 @@ class TrackerView extends React.Component<{tracker: TrackerInfo}, {}> {
             <div className="trackerInfo">
                 <div className="label">{t.label} - {t.tag}</div>
                 <div className="trackingBody">
-                    {t.slug} @ <a href={t.tracking_url} target="_blank">{t.tracking_number}</a>
+                    <div> {this.getDeliveredOrDetails(t)} </div>
+                    <div> {t.slug} @ <a href={t.tracking_url} target="_blank">{t.tracking_number}</a> </div>
                 </div>
-                <div className="lastUpdated">Last updated {prettyPrintTimeSince(t.last_updated_at)}</div>
-                <div className="trackingRefresh">R</div>
+                <div className="lastUpdated">
+                <div> added {prettyPrintTimeSince(t.created_at)} </div>
+                <div> last updated {prettyPrintTimeSince(t.last_updated_at)} </div>
+                </div>
+                <div className="trackingActions">delete refresh</div>
             </div>
         )
     }
