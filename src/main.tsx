@@ -21,20 +21,22 @@ export class MainPage extends React.Component<{}, {trackerDict: TrackerMap}> {
         });
     }
 
-    refreshTracker(tracker: TrackerInfo) {
+    refreshTracker(tracker: TrackerInfo, onSuccess: () => void) {
         // fetch new info, store it, then update state
         TrackingAPI.getUpdatedTrackingInfo(tracker, (updatedTracker: TrackerInfo) => {
             this.storage.addOrUpdateTracker(updatedTracker, () => {
                 this.setState({trackerDict: this.storage.jsonTrackers});
+                onSuccess();
             })
         })
     }
 
-    deleteTracker(tracker: TrackerInfo) {
+    deleteTracker(tracker: TrackerInfo, onSuccess: () => void) {
         // remove from aftership, remove locally, then update state
         TrackingAPI.deleteTrackingNumber(tracker, () => {
             this.storage.deleteTracker(tracker.tracking_number, () => {
                 this.setState({trackerDict: this.storage.jsonTrackers});
+                onSuccess();
             })
         })
     }
@@ -58,16 +60,22 @@ export class MainPage extends React.Component<{}, {trackerDict: TrackerMap}> {
 
 type TrackerViewProps = {
     tracker: TrackerInfo,
-    refreshTracker: (tracker: TrackerInfo) => void,
-    deleteTracker: (tracker: TrackerInfo) => void
+    refreshTracker: (tracker: TrackerInfo, onSuccess: () => void) => void,
+    deleteTracker: (tracker: TrackerInfo, onSuccess: () => void) => void
 };
 
-class TrackerView extends React.Component<TrackerViewProps, {}> {
+type TrackerViewState = {
+    operationInProgress: boolean
+};
+
+class TrackerView extends React.Component<TrackerViewProps, TrackerViewState> {
     constructor(props) {
         super(props);
 
         this.handleRefreshTracker = this.handleRefreshTracker.bind(this);
         this.handleDeleteTracker = this.handleDeleteTracker.bind(this);
+
+        this.state = {operationInProgress: false};
     }
     // TODO: add subtag/subtag_message for extra detail
     getDeliveredOrDetails(t: TrackerInfo): string {
@@ -82,15 +90,23 @@ class TrackerView extends React.Component<TrackerViewProps, {}> {
     }
 
     handleRefreshTracker() {
+        this.setState({operationInProgress: true});
         // let the parent know to refresh!
-        // TODO: update state to show the refresh is in progress, pass callback
-        this.props.refreshTracker(this.props.tracker);
+        this.props.refreshTracker(this.props.tracker, () => {this.setState({operationInProgress: false})});
     }
 
     handleDeleteTracker() {
+        this.setState({operationInProgress: true});
         // let the parent know to refresh!
-        // TODO: update state to show the refresh is in progress, pass callback
-        this.props.deleteTracker(this.props.tracker);
+        // technically its deleted so you dont need to clear state...but....ehhhh
+        this.props.deleteTracker(this.props.tracker, () => {this.setState({operationInProgress: false})});
+    }
+
+    maybeRenderFilter() {
+        // render grey overlay when delete/refresh pending
+        if (this.state.operationInProgress) {
+            return <div className="inProgressFilter" />
+        }
     }
 
     render() {
@@ -108,6 +124,7 @@ class TrackerView extends React.Component<TrackerViewProps, {}> {
                     <span onClick={this.handleDeleteTracker}>delete</span>
                     <span onClick={this.handleRefreshTracker}>refresh</span>
                 </div>
+                {this.maybeRenderFilter()}
             </div>
         )
     }
