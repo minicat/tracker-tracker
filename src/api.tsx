@@ -127,7 +127,7 @@ export class TrackingAPI {
     };
 
 
-    static deleteTrackingNumber(tracker: TrackerInfo) {
+    static deleteTrackingNumber(tracker: TrackerInfo, onSuccess: Function) {
         // to parse: data -> tracking
         $.ajax({
             url: AFTERSHIP_API_PREFIX + '/' + tracker.aftership_id,
@@ -137,7 +137,7 @@ export class TrackingAPI {
                 'Content-Type': 'application/json'
             },
             dataType: "json",
-            // success: TODO
+            success: (data, status, jqxhr) => {onSuccess()}
             // TODO: failure handler
         });
     }

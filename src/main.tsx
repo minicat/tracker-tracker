@@ -6,11 +6,14 @@ import {prettyPrintTimeSince} from './helpers';
 
 
 export class MainPage extends React.Component<{}, {trackerDict: TrackerMap}> {
+    // TODO: auto-refresh when a tracker is added by watching storage?
+    // that might remove the need to setState in refresh/delete too
     storage: Storage;
     constructor(props: {}) {
         super(props);
 
         this.refreshTracker = this.refreshTracker.bind(this);
+        this.deleteTracker = this.deleteTracker.bind(this);
 
         this.state = {trackerDict: {}};
         this.storage = new Storage((jsonTrackers: TrackerMap) => {
@@ -27,6 +30,15 @@ export class MainPage extends React.Component<{}, {trackerDict: TrackerMap}> {
         })
     }
 
+    deleteTracker(tracker: TrackerInfo) {
+        // remove from aftership, remove locally, then update state
+        TrackingAPI.deleteTrackingNumber(tracker, () => {
+            this.storage.deleteTracker(tracker.tracking_number, () => {
+                this.setState({trackerDict: this.storage.jsonTrackers});
+            })
+        })
+    }
+
     render() {
         // TODO: add thing, remove things, refresh things, "old" section, load
         const trackers = Object.values(this.state.trackerDict);
@@ -34,18 +46,28 @@ export class MainPage extends React.Component<{}, {trackerDict: TrackerMap}> {
         trackers.sort((a, b) => {return Date.parse(a.created_at) - Date.parse(b.created_at)});
         return (
             <div className="mainPage">
-                {trackers.map(t => <TrackerView tracker={t} refreshTracker={this.refreshTracker} />)}
+                {trackers.map(t => <TrackerView
+                    tracker={t}
+                    refreshTracker={this.refreshTracker}
+                    deleteTracker={this.deleteTracker}
+                />)}
             </div>
         );
     }
 }
 
+type TrackerViewProps = {
+    tracker: TrackerInfo,
+    refreshTracker: (tracker: TrackerInfo) => void,
+    deleteTracker: (tracker: TrackerInfo) => void
+};
 
-class TrackerView extends React.Component<{tracker: TrackerInfo, refreshTracker: (tracker: TrackerInfo) => void}, {}> {
+class TrackerView extends React.Component<TrackerViewProps, {}> {
     constructor(props) {
         super(props);
 
         this.handleRefreshTracker = this.handleRefreshTracker.bind(this);
+        this.handleDeleteTracker = this.handleDeleteTracker.bind(this);
     }
     // TODO: add subtag/subtag_message for extra detail
     getDeliveredOrDetails(t: TrackerInfo): string {
@@ -65,6 +87,12 @@ class TrackerView extends React.Component<{tracker: TrackerInfo, refreshTracker:
         this.props.refreshTracker(this.props.tracker);
     }
 
+    handleDeleteTracker() {
+        // let the parent know to refresh!
+        // TODO: update state to show the refresh is in progress, pass callback
+        this.props.deleteTracker(this.props.tracker);
+    }
+
     render() {
         const t = this.props.tracker;
         return (
@@ -77,7 +105,7 @@ class TrackerView extends React.Component<{tracker: TrackerInfo, refreshTracker:
                 <div> last updated {prettyPrintTimeSince(t.last_updated_at)} </div>
                 </div>
                 <div className="trackingActions">
-                    <span>delete</span>
+                    <span onClick={this.handleDeleteTracker}>delete</span>
                     <span onClick={this.handleRefreshTracker}>refresh</span>
                 </div>
             </div>
