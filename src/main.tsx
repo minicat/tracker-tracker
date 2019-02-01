@@ -187,16 +187,20 @@ class AddTrackerForm extends React.Component<{}, AddTrackerFormState> {
           () => this.tick(),
           250
         );
-        // TODO: the aftership API takes a while to actually fetch the tracking info, it will return PENDING
-        // Should wait a minute then update it in the background.
         TrackingAPI.addTrackingNumber(
             this.state.tracking_number,
             this.state.label,
             (tracker: TrackerInfo) => {
-                this.storage.addOrUpdateTracker(tracker, () => {
-                    clearInterval(this.ticker);
-                    this.setState({tracking_number: '', label: '', buttonText: 'Done!', inProgress: false});
-                })
+                // The Aftership API initially returns "pending" then updates with actual state
+                // after a few seconds. To get around this, wait and refresh before updating storage
+                setTimeout(() => {
+                    TrackingAPI.getUpdatedTrackingInfo(tracker, (updatedTracker: TrackerInfo) => {
+                        this.storage.addOrUpdateTracker(updatedTracker, () => {
+                            clearInterval(this.ticker);
+                            this.setState({tracking_number: '', label: '', buttonText: 'Done!', inProgress: false});
+                        })
+                    })
+                }, 1000);
             }
         )
         event.preventDefault();
