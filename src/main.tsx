@@ -8,14 +8,24 @@ import {prettyPrintTimeSince} from './helpers';
 export class MainPage extends React.Component<{}, {trackerDict: TrackerMap}> {
     storage: Storage;
     constructor(props: {}) {
-            super(props);
+        super(props);
 
-            this.state = {trackerDict: {}};
-            this.storage = new Storage((jsonTrackers: TrackerMap) => {
-                this.setState({trackerDict: jsonTrackers})
-            });
+        this.refreshTracker = this.refreshTracker.bind(this);
+
+        this.state = {trackerDict: {}};
+        this.storage = new Storage((jsonTrackers: TrackerMap) => {
+            this.setState({trackerDict: jsonTrackers})
+        });
     }
 
+    refreshTracker(tracker: TrackerInfo) {
+        // fetch new info, store it, then update state
+        TrackingAPI.getUpdatedTrackingInfo(tracker, (updatedTracker: TrackerInfo) => {
+            this.storage.addOrUpdateTracker(updatedTracker, () => {
+                this.setState({trackerDict: this.storage.jsonTrackers});
+            })
+        })
+    }
 
     render() {
         // TODO: add thing, remove things, refresh things, "old" section, load
@@ -24,15 +34,19 @@ export class MainPage extends React.Component<{}, {trackerDict: TrackerMap}> {
         trackers.sort((a, b) => {return Date.parse(a.created_at) - Date.parse(b.created_at)});
         return (
             <div className="mainPage">
-                {trackers.map(t => <TrackerView tracker={t} />)}
+                {trackers.map(t => <TrackerView tracker={t} refreshTracker={this.refreshTracker} />)}
             </div>
         );
     }
 }
 
 
-class TrackerView extends React.Component<{tracker: TrackerInfo}, {}> {
+class TrackerView extends React.Component<{tracker: TrackerInfo, refreshTracker: (tracker: TrackerInfo) => void}, {}> {
+    constructor(props) {
+        super(props);
 
+        this.handleRefreshTracker = this.handleRefreshTracker.bind(this);
+    }
     // TODO: add subtag/subtag_message for extra detail
     getDeliveredOrDetails(t: TrackerInfo): string {
         if (t.shipment_delivery_date !== null) {
@@ -45,18 +59,27 @@ class TrackerView extends React.Component<{tracker: TrackerInfo}, {}> {
         return output;
     }
 
+    handleRefreshTracker() {
+        // let the parent know to refresh!
+        // TODO: update state to show the refresh is in progress, pass callback
+        this.props.refreshTracker(this.props.tracker);
+    }
+
     render() {
         const t = this.props.tracker;
         return (
             <div className="trackerInfo">
-                <div className="label">{t.label} - {t.tag}</div>
+                <div className="label">{t.label} - {t.tag.replace(/([A-Z])/g, ' $1').trim()}</div>
                 <div className="trackingDetails">{this.getDeliveredOrDetails(t).toLowerCase()}</div>
                 <div className="trackingNumber"><br />{t.slug} @ <a href={t.tracking_url} target="_blank">{t.tracking_number}</a></div>
                 <div className="lastUpdated">
                 <div> added {prettyPrintTimeSince(t.created_at)} </div>
                 <div> last updated {prettyPrintTimeSince(t.last_updated_at)} </div>
                 </div>
-                <div className="trackingActions">delete refresh</div>
+                <div className="trackingActions">
+                    <span>delete</span>
+                    <span onClick={this.handleRefreshTracker}>refresh</span>
+                </div>
             </div>
         )
     }
@@ -119,6 +142,8 @@ class AddTrackerForm extends React.Component<{}, AddTrackerFormState> {
           () => this.tick(),
           250
         );
+        // TODO: the aftership API takes a while to actually fetch the tracking info, it will return PENDING
+        // Should wait a minute then update it in the background.
         TrackingAPI.addTrackingNumber(
             this.state.tracking_number,
             this.state.label,

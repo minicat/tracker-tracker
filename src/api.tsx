@@ -159,7 +159,7 @@ export class TrackingAPI {
         });
     }
 
-    static getUpdatedTrackingInfo(tracker: TrackerInfo) {
+    static getUpdatedTrackingInfo(tracker: TrackerInfo, onSuccess: Function) {
         // to parse: data -> tracking
         $.ajax({
             url: AFTERSHIP_API_PREFIX + '/' + tracker.aftership_id,
@@ -169,17 +169,19 @@ export class TrackingAPI {
                 'Content-Type': 'application/json'
             },
             dataType: "json",
-            success: (data, status, jqxhr) => {console.log('get updated', data, TrackingAPI.parseAftershipTracker(data['data']['tracking']))}
+            success: (data, status, jqxhr) => {
+                onSuccess(TrackingAPI.parseAftershipTracker(data['data']['tracking']));
+            }
             // TODO: failure handler
         });
     }
 
-    static constructTrackingUrl(tracker: TrackerInfo) {
+    static constructTrackingUrl(slug: string, tracking_number: string) {
         let prefix = FALLBACK_TRACKING_URL;
-        if (tracker.slug in CARRIERS_TO_TRACKING_URL) {
-            prefix = CARRIERS_TO_TRACKING_URL[tracker.slug];
+        if (slug in CARRIERS_TO_TRACKING_URL) {
+            prefix = CARRIERS_TO_TRACKING_URL[slug];
         }
-        return prefix + tracker.tracking_number;
+        return prefix + tracking_number;
     }
 
     static parseAftershipTracker(rawInfo: {[key: string]: string}): TrackerInfo {
@@ -194,7 +196,7 @@ export class TrackingAPI {
             tag: rawInfo['tag'],
             subtag_message: rawInfo['subtag_message'],
             created_at: rawInfo['created_at'],
-            tracking_url: 'https://minicat.aftership.com/' + rawInfo['tracking_number']
+            tracking_url: TrackingAPI.constructTrackingUrl(rawInfo['slug'], rawInfo['tracking_number'])
         }
     }
 }
