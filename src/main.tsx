@@ -80,7 +80,7 @@ class TrackerView extends React.Component<TrackerViewProps, TrackerViewState> {
     // TODO: add subtag/subtag_message for extra detail
     getDeliveredOrDetails(t: TrackerInfo): string {
         if (t.shipment_delivery_date !== null) {
-            return `Delivered ${prettyPrintTimeSince(t.shipment_delivery_date!)}`;
+            return `delivered ${prettyPrintTimeSince(t.shipment_delivery_date!)}`;
         }
         let output = t.subtag_message;
         if (t.expected_delivery !== null){
