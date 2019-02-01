@@ -12,6 +12,7 @@ export type TrackerInfo = {
     aftership_id: string,  //id
     last_updated_at: string,
     tag: string,  // shipping status
+    subtag_message: string, // details about shipping
     slug: string,  // carrier
     expected_delivery: string,  // may be null
     shipment_delivery_date: string,   // may be null
@@ -191,6 +192,7 @@ export class TrackingAPI {
             expected_delivery: rawInfo['expected_delivery'],
             shipment_delivery_date: rawInfo['shipment_delivery_date'],
             tag: rawInfo['tag'],
+            subtag_message: rawInfo['subtag_message'],
             created_at: rawInfo['created_at'],
             tracking_url: 'https://minicat.aftership.com/' + rawInfo['tracking_number']
         }
