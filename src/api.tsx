@@ -89,6 +89,16 @@ export class Storage {
 * No batch lookup though, so we'll have to rely on list to do batch refresh.
 */
 
+// custom tracking urls is a paid aftership feature; query the provider directly & fall back to goog
+const FALLBACK_TRACKING_URL = 'https://www.google.com/search?q='
+const CARRIERS_TO_TRACKING_URL = {
+    'usps': 'https://tools.usps.com/go/TrackConfirmAction?tLabels=',
+    'fedex': 'https://www.fedex.com/Tracking?action=track&tracknumbers=',
+    'ups': 'https://www.ups.com/track?loc=en_US&tracknum=',
+    'i-parcel': 'https://tracking.i-parcel.com/?TrackingNumber=',
+    'dhl': 'http://www.dhl.com/en/express/tracking.html?&brand=DHL&AWB='
+}
+
 export class TrackingAPI {
     // TODO: accept failure callbacks
     static addTrackingNumber(tracking_number: string, label: string, onSuccess: Function){
@@ -161,6 +171,14 @@ export class TrackingAPI {
             success: (data, status, jqxhr) => {console.log('get updated', data, TrackingAPI.parseAftershipTracker(data['data']['tracking']))}
             // TODO: failure handler
         });
+    }
+
+    static constructTrackingUrl(tracker: TrackerInfo) {
+        let prefix = FALLBACK_TRACKING_URL;
+        if (tracker.slug in CARRIERS_TO_TRACKING_URL) {
+            prefix = CARRIERS_TO_TRACKING_URL[tracker.slug];
+        }
+        return prefix + tracker.tracking_number;
     }
 
     static parseAftershipTracker(rawInfo: {[key: string]: string}): TrackerInfo {

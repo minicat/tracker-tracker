@@ -47,7 +47,7 @@ class TrackerView extends React.Component<{tracker: TrackerInfo}, {}> {
     }
 
     render() {
-        const t = this.props.tracker
+        const t = this.props.tracker;
         return (
             <div className="trackerInfo">
                 <div className="label">{t.label} - {t.tag}</div>
@@ -110,7 +110,7 @@ class AddTrackerForm extends React.Component<{}, AddTrackerFormState> {
     tick() {
         // Animate a ...
         let newText = this.state.buttonText + '.';
-        if (newText.length == 4) {
+        if (newText.length === 4) {
             newText = '.';
         }
         this.setState({buttonText: newText})
