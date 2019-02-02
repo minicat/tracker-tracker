@@ -184,6 +184,7 @@ export class TrackingAPI {
         return prefix + tracking_number;
     }
 
+    // TODO: aftership translation layer for subtag_message
     static parseAftershipTracker(rawInfo: {[key: string]: string}): TrackerInfo {
         return {
             tracking_number: rawInfo['tracking_number'],

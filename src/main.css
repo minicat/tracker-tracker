@@ -6,20 +6,54 @@
   background-color: white;
 }
 
+.panelView input, .panelView button {
+  border: 1px solid grey;
+  box-sizing: border-box;
+  padding: 0px 3px 0px 3px;
+  line-height: 20px;
+  vertical-align: middle;
+}
+
+.panelView input:focus {
+  border: 1px solid #cce5ff;
+  outline: none;
+}
+
+.panelView button:hover, .panelView input[name=track]:hover:enabled {
+  background-color: #cce5ff;
+}
+
+.panelView input[name=track]:disabled {
+  background-color: #e2e2e2;
+}
+
+.panelView hr {
+  border: 1px solid lightgrey;
+}
+
+/* TODO: fix panelView styling, hover/select/disabled styles */
 .panelView input[name=dontautotracking_number] {
-  width: 150px;
+  width: 160px;
+  margin-bottom: 2px;
+}
+
+.panelViewBottomRow {
+  height: 50px;
 }
 
 .panelView input[name=dontautolabel] {
-  width: 100px;
+  width: 110px;
 }
 
 .panelView input[name=track] {
-  width: 50px;
+  width: 48px;
+  margin-left: 2px;
+  background-color: #eff7ff;
 }
 
 .panelView button {
   width: 160px;
+  background-color: #eff7ff;
 }
 
 .formValidationMessage {
@@ -48,6 +82,10 @@
 
 .trackerInfo a {
   color: #0066cc;
+}
+
+.trackerInfo a:hover {
+  color: #00478e;
 }
 
 .label {

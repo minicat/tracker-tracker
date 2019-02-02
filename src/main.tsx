@@ -215,6 +215,7 @@ class AddTrackerForm extends React.Component<{}, AddTrackerFormState> {
         let inputText = 'Track';
 
         const validationMessage = alreadyBeingTracked ? "You're already tracking this" : "";
+        // TODO: make submit a button then fix stylings
         return (
             <div>
                 <form onSubmit={this.handleSubmit}>
