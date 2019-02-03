@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import {MainPage, PanelView} from './main';
+import {MainPage} from './main';
+import {PanelView} from './panel';
 
 // XXX: use react router/configure multiple endpoints instead?
 if (window.location.hash) {
