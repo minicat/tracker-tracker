@@ -23,17 +23,12 @@ export type TrackerInfo = {
 
 export type TrackerMap = {[tracking_number: string]: TrackerInfo}
 
-// TODO: eventually we should save and cache tracking info on save of new tracker
-// also reject dupe trackers
-// also refresh in background
-
-// TODO: add types
+// TODO: refresh in background
 
 /**
 * Storage calls
 * Note: we store a map of {tracking_number: TrackerInfo}
 * TODO: error handling
-* TODO: maintain cached version locally
 * TODO: fix weird state stuff? cos jsonTrackers should be part of MainPage state
 * TODO: fix behaviour when both panel and main page are open - they need to be in sync
 */
@@ -100,10 +95,16 @@ const CARRIERS_TO_TRACKING_URL = {
     'dhl': 'http://www.dhl.com/en/express/tracking.html?&brand=DHL&AWB='
 }
 
+// expand the less descriptive subtag messages as per https://help.aftership.com/hc/en-us/articles/360007823253
+const SUBTAG_MESSAGE_EXPANDED = {
+    'Pending': 'There is no information available on the carrier website or the tracking number is yet to be tracked',
+    'Expired': 'The shipment has no tracking information from the last 30 days',
+    'Info Received': 'The carrier has received the request from the shipper and is about to pick up the shipment'
+}
+
 export class TrackingAPI {
     // TODO: accept failure callbacks
     static addTrackingNumber(tracking_number: string, label: string, onSuccess: Function){
-        // to parse: data -> tracking
         // Note: This will return an error if the tracking number already exists.
         $.ajax({
             url: AFTERSHIP_API_PREFIX,
@@ -128,7 +129,6 @@ export class TrackingAPI {
 
 
     static deleteTrackingNumber(tracker: TrackerInfo, onSuccess: Function) {
-        // to parse: data -> tracking
         $.ajax({
             url: AFTERSHIP_API_PREFIX + '/' + tracker.aftership_id,
             method: 'DELETE',
@@ -143,7 +143,6 @@ export class TrackingAPI {
     }
 
     static getAllTrackingInfo() {
-        // to parse: data -> trackings
         // Note: theoretically this is paginated and only shows 100, but hopefully I never have that
         // much online shopping
         $.ajax({
@@ -160,7 +159,6 @@ export class TrackingAPI {
     }
 
     static getUpdatedTrackingInfo(tracker: TrackerInfo, onSuccess: Function) {
-        // to parse: data -> tracking
         $.ajax({
             url: AFTERSHIP_API_PREFIX + '/' + tracker.aftership_id,
             method: 'GET',
@@ -184,8 +182,11 @@ export class TrackingAPI {
         return prefix + tracking_number;
     }
 
-    // TODO: aftership translation layer for subtag_message
     static parseAftershipTracker(rawInfo: {[key: string]: string}): TrackerInfo {
+        let subtag_message = rawInfo['subtag_message'];
+        if (subtag_message in SUBTAG_MESSAGE_EXPANDED) {
+            subtag_message = SUBTAG_MESSAGE_EXPANDED[subtag_message];
+        }
         return {
             tracking_number: rawInfo['tracking_number'],
             label: rawInfo['title'],
@@ -195,7 +196,7 @@ export class TrackingAPI {
             expected_delivery: rawInfo['expected_delivery'],
             shipment_delivery_date: rawInfo['shipment_delivery_date'],
             tag: rawInfo['tag'],
-            subtag_message: rawInfo['subtag_message'],
+            subtag_message: subtag_message,
             created_at: rawInfo['created_at'],
             tracking_url: TrackingAPI.constructTrackingUrl(rawInfo['slug'], rawInfo['tracking_number'])
         }
